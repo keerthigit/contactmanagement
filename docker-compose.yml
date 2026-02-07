@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: contact-postgres
+    environment:
+      POSTGRES_DB: contactdb
+      POSTGRES_USER: contactuser
+      POSTGRES_PASSWORD: contactpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - contact-network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: contact-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - contact-network
+    depends_on:
+      - postgres
+
+  eureka-server:
+    build:
+      context: ./backend/eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - contact-network
+    depends_on:
+      - postgres
+
+  contact-service:
+    build:
+      context: ./backend/contact-service
+    container_name: contact-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/contactdb
+      SPRING_DATASOURCE_USERNAME: contactuser
+      SPRING_DATASOURCE_PASSWORD: contactpass
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    networks:
+      - contact-network
+    depends_on:
+      - postgres
+      - eureka-server
+
+  api-gateway:
+    build:
+      context: ./backend/api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    networks:
+      - contact-network
+    depends_on:
+      - eureka-server
+      - contact-service
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+
+networks:
+  contact-network:
+    driver: bridge
