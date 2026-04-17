@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 2. Check the database: docker exec -it contact-postgres psql -U contactuser -d contactdb -c "SELECT * FROM contacts;"
  */
 @SpringBootTest(classes = com.contactmanagement.contactservice.ContactServiceApplication.class)
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
 @TestPropertySource(locations = "classpath:application-test.yml")
 // NOTE: NO @Transactional - data will persist!
