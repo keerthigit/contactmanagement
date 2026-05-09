@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact Management Security Review</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.5;
+      margin: 24px;
+      color: #1f2937;
+      background: #f9fafb;
+    }
+    h1, h2 {
+      color: #111827;
+    }
+    .meta {
+      margin-bottom: 20px;
+      padding: 12px;
+      background: #eef2ff;
+      border-left: 4px solid #4f46e5;
+    }
+    .issue {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .label {
+      font-weight: 700;
+      color: #111827;
+    }
+    .sev-critical { color: #b91c1c; font-weight: 700; }
+    .sev-high { color: #c2410c; font-weight: 700; }
+    .sev-medium { color: #b45309; font-weight: 700; }
+    ul {
+      margin-top: 8px;
+    }
+    code {
+      background: #f3f4f6;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Security Review Report: Contact Management System (Spring Boot)</h1>
+  <div class="meta">
+    <div><span class="label">Scope:</span> Provided backend code only</div>
+    <div><span class="label">Review focus:</span> OWASP Top 10 aligned issues with real exploitability</div>
+  </div>
+
+  <h2>Issue 1</h2>
+  <div class="issue">
+    <p><span class="label">1. Issue Title:</span> Unauthenticated access to all contact APIs (missing API authentication and authorization)</p>
+    <p><span class="label">2. Severity:</span> <span class="sev-critical">Critical</span></p>
+    <p><span class="label">3. CWE:</span> CWE-306 (Missing Authentication for Critical Function), CWE-862 (Missing Authorization)</p>
+    <p><span class="label">4. Location:</span> <code>backend/contact-service/src/main/java/com/contactmanagement/contactservice/controller/ContactController.java</code> - Class <code>ContactController</code> - Methods <code>createContact</code>, <code>getAllContacts</code>, <code>getContactById</code>, <code>updateContact</code>, <code>deleteContact</code>, <code>searchContacts</code>; and <code>backend/contact-service/pom.xml</code> (no Spring Security dependency)</p>
+    <p><span class="label">5. Problem:</span> Every CRUD/search endpoint is publicly callable with no authentication/authorization checks. There is no security configuration and no method-level access control.</p>
+    <p><span class="label">6. Exploit Scenario:</span> An internet user sends direct requests to <code>/api/contacts</code> through gateway or to contact-service and can read, create, modify, and delete all contacts without credentials.</p>
+    <p><span class="label">7. Fix:</span> Add Spring Security + resource server JWT validation and enforce role-based rules. Minimal code-level fix:</p>
+    <ul>
+      <li>Add dependency <code>spring-boot-starter-security</code> (and JWT resource server dependency) in <code>backend/contact-service/pom.xml</code>.</li>
+      <li>Create a <code>SecurityConfig</code> with a <code>SecurityFilterChain</code> requiring authentication for <code>/contacts/**</code>.</li>
+      <li>Add <code>@EnableMethodSecurity</code> and method guards such as <code>@PreAuthorize("hasAnyRole('ADMIN','USER')")</code> on controller/service methods.</li>
+    </ul>
+    <p><span class="label">8. Confidence:</span> High</p>
+  </div>
+
+  <h2>Issue 2</h2>
+  <div class="issue">
+    <p><span class="label">1. Issue Title:</span> Broken object-level authorization (IDOR) across read/update/delete/search operations</p>
+    <p><span class="label">2. Severity:</span> <span class="sev-high">High</span></p>
+    <p><span class="label">3. CWE:</span> CWE-639 (Authorization Bypass Through User-Controlled Key)</p>
+    <p><span class="label">4. Location:</span> <code>backend/contact-service/src/main/java/com/contactmanagement/contactservice/service/ContactService.java</code> - Methods <code>read</code>, <code>readAll</code>, <code>update</code>, <code>delete</code>, <code>searchContacts</code>; and <code>backend/contact-service/src/main/java/com/contactmanagement/contactservice/model/Contact.java</code> (no owner/user field)</p>
+    <p><span class="label">5. Problem:</span> The service fetches and mutates contacts by ID with no owner check, and there is no per-user ownership model in the entity/query layer.</p>
+    <p><span class="label">6. Exploit Scenario:</span> A low-privileged USER guesses or obtains another contact UUID and performs <code>GET /contacts/{id}</code>, <code>PUT /contacts/{id}</code>, or <code>DELETE /contacts/{id}</code> to access/alter/delete another user’s data.</p>
+    <p><span class="label">7. Fix:</span> Add an owner column and enforce owner-scoped repository queries. Minimal code-level fix:</p>
+    <ul>
+      <li>Add <code>ownerUserId</code> (or equivalent) to <code>Contact</code>.</li>
+      <li>Replace <code>findById(id)</code> with <code>findByIdAndOwnerUserId(id, currentUserId)</code> for USER role.</li>
+      <li>In list/search, query only owner’s data (<code>findAllByOwnerUserId(...)</code> / owner predicate in specification).</li>
+      <li>Allow ADMIN bypass explicitly via role check; deny cross-user access otherwise.</li>
+    </ul>
+    <p><span class="label">8. Confidence:</span> High</p>
+  </div>
+
+  <h2>Issue 3</h2>
+  <div class="issue">
+    <p><span class="label">1. Issue Title:</span> Mass assignment on create endpoint allows client-controlled primary key and audit fields</p>
+    <p><span class="label">2. Severity:</span> <span class="sev-high">High</span></p>
+    <p><span class="label">3. CWE:</span> CWE-915 (Improperly Controlled Modification of Dynamically-Determined Object Attributes)</p>
+    <p><span class="label">4. Location:</span> <code>backend/contact-service/src/main/java/com/contactmanagement/contactservice/controller/ContactController.java</code> - Method <code>createContact</code>; <code>backend/contact-service/src/main/java/com/contactmanagement/contactservice/model/Contact.java</code> - Setters <code>setId</code>, <code>setCreatedAt</code>, <code>setUpdatedAt</code></p>
+    <p><span class="label">5. Problem:</span> The API binds request JSON directly to JPA entity and persists it; clients can submit fields that should be server-controlled (<code>id</code>, timestamps).</p>
+    <p><span class="label">6. Exploit Scenario:</span> Attacker sends <code>POST /contacts</code> with an existing <code>id</code> to force overwrite/merge behavior or inject misleading audit timestamps, compromising data integrity and audit trust.</p>
+    <p><span class="label">7. Fix:</span> Use dedicated request DTOs with allowed fields only; never bind entity directly from request body. Minimal code-level fix:</p>
+    <ul>
+      <li>Create <code>CreateContactRequest</code> containing only business fields (<code>firstName</code>, <code>lastName</code>, <code>emails</code>, <code>phones</code>, <code>addresses</code>, <code>tags</code>, <code>status</code>).</li>
+      <li>Map DTO to a new <code>Contact</code> instance in service and do not set <code>id</code>/<code>createdAt</code>/<code>updatedAt</code> from client input.</li>
+      <li>Optionally annotate server-managed fields as read-only for JSON (<code>@JsonProperty(access = JsonProperty.Access.READ_ONLY)</code>).</li>
+    </ul>
+    <p><span class="label">8. Confidence:</span> High</p>
+  </div>
+
+  <h2>Issue 4</h2>
+  <div class="issue">
+    <p><span class="label">1. Issue Title:</span> Hardcoded database credentials in source configuration</p>
+    <p><span class="label">2. Severity:</span> <span class="sev-medium">Medium</span></p>
+    <p><span class="label">3. CWE:</span> CWE-798 (Use of Hard-coded Credentials)</p>
+    <p><span class="label">4. Location:</span> <code>backend/contact-service/src/main/resources/application.yml</code></p>
+    <p><span class="label">5. Problem:</span> Database username/password are embedded in committed config, making credential leakage likely via repo access, logs, backups, or artifact distribution.</p>
+    <p><span class="label">6. Exploit Scenario:</span> Any actor with code/release access obtains DB credentials and connects directly to PostgreSQL to read/modify contact data outside API controls.</p>
+    <p><span class="label">7. Fix:</span> Externalize secrets to environment variables or a secret manager. Minimal code-level fix:</p>
+    <ul>
+      <li>Replace plaintext with <code>${DB_USERNAME}</code> and <code>${DB_PASSWORD}</code> in <code>application.yml</code>.</li>
+      <li>Inject values at deploy/runtime and rotate current credentials.</li>
+    </ul>
+    <p><span class="label">8. Confidence:</span> High</p>
+  </div>
+
+  <h2>Final Summary create by Keerthi</h2>
+  <div class="issue">
+    <p><span class="label">Total issues found by severity:</span></p>
+    <ul>
+      <li>Critical: 1</li>
+      <li>High: 2</li>
+      <li>Medium: 1</li>
+      <li>Low: 0</li>
+    </ul>
+    <p><span class="label">Top 3 risks to fix first:</span></p>
+    <ol>
+      <li>Missing authentication/authorization on all contact endpoints (public CRUD access).</li>
+      <li>IDOR due to no owner model and no ownership enforcement in service/repository queries.</li>
+      <li>Mass assignment via entity binding in create endpoint, allowing client-controlled sensitive fields.</li>
+    </ol>
+  </div>
+</body>
+</html>

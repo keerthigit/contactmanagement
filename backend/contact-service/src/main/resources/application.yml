@@ -27,3 +27,16 @@ logging:
   level:
     com.contactmanagement: DEBUG
     org.springframework.web: INFO
+
+app:
+  security:
+    users:
+      read:
+        username: ${CONTACT_READ_USERNAME:contact_reader}
+        password: ${CONTACT_READ_PASSWORD:change-me-read}
+      write:
+        username: ${CONTACT_WRITE_USERNAME:contact_writer}
+        password: ${CONTACT_WRITE_PASSWORD:change-me-write}
+      admin:
+        username: ${CONTACT_ADMIN_USERNAME:contact_admin}
+        password: ${CONTACT_ADMIN_PASSWORD:change-me-admin}

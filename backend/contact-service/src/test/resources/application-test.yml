@@ -16,3 +16,16 @@ spring:
 eureka:
   client:
     enabled: false
+
+app:
+  security:
+    users:
+      read:
+        username: reader_test
+        password: reader_test_password
+      write:
+        username: writer_test
+        password: writer_test_password
+      admin:
+        username: admin_test
+        password: admin_test_password
