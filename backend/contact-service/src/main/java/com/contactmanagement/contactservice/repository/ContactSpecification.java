@@ -38,13 +38,12 @@ public class ContactSpecification {
                 needsDistinct = true;
             }
 
-            // Phone filter: search in phones collection (partial match)
+            // Phone filter: match mobile OR home phone (partial match)
             if (request.getPhone() != null && !request.getPhone().trim().isEmpty()) {
-                Join<Contact, String> phoneJoin = root.join("phones", JoinType.LEFT);
                 String phonePattern = "%" + request.getPhone().trim() + "%";
-                Predicate phonePredicate = criteriaBuilder.like(phoneJoin, phonePattern);
-                predicates.add(phonePredicate);
-                needsDistinct = true;
+                Predicate mobilePredicate = criteriaBuilder.like(root.get("mobile"), phonePattern);
+                Predicate homePredicate = criteriaBuilder.like(root.get("homePhone"), phonePattern);
+                predicates.add(criteriaBuilder.or(mobilePredicate, homePredicate));
             }
 
             // Zip filter: search for zip code pattern in addresses (case-insensitive)

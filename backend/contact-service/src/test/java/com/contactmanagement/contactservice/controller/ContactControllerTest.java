@@ -1,6 +1,6 @@
 package com.contactmanagement.contactservice.controller;
 
-import com.contactmanagement.contactservice.TestConfig;
+import com.contactmanagement.contactservice.config.SecurityConfig;
 import com.contactmanagement.contactservice.dto.ContactSearchRequest;
 import com.contactmanagement.contactservice.dto.PaginatedResponse;
 import com.contactmanagement.contactservice.model.Contact;
@@ -19,6 +19,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -37,7 +38,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 HibernateJpaAutoConfiguration.class,
                 EurekaClientAutoConfiguration.class
         })
-@Import(TestConfig.class)
+@Import(SecurityConfig.class)
+@WithMockUser(username = "contactapi")
 @DisplayName("ContactController Unit Tests")
 class ContactControllerTest {
 
@@ -78,7 +80,7 @@ class ContactControllerTest {
                 .andExpect(jsonPath("$.lastName").value("Doe"))
                 .andExpect(jsonPath("$.status").value("ACTIVE"))
                 .andExpect(jsonPath("$.emails", hasSize(2)))
-                .andExpect(jsonPath("$.phones", hasSize(1)))
+                .andExpect(jsonPath("$.mobile").value("+1234567890"))
                 .andExpect(jsonPath("$.addresses", hasSize(1)))
                 .andExpect(jsonPath("$.tags", hasSize(2)));
 
@@ -106,14 +108,15 @@ class ContactControllerTest {
         minimalContact.setFirstName("Jane");
         minimalContact.setLastName("Smith");
         minimalContact.setStatus(ContactStatus.ACTIVE);
+        minimalContact.setMobile("+10000000000");
 
         Contact savedContact = new Contact();
         savedContact.setId(testContactId);
         savedContact.setFirstName("Jane");
         savedContact.setLastName("Smith");
         savedContact.setStatus(ContactStatus.ACTIVE);
+        savedContact.setMobile("+10000000000");
         savedContact.setEmails(new ArrayList<>());
-        savedContact.setPhones(new ArrayList<>());
         savedContact.setAddresses(new ArrayList<>());
         savedContact.setTags(new ArrayList<>());
 
@@ -179,7 +182,7 @@ class ContactControllerTest {
                 .andExpect(jsonPath("$.lastName").value("Doe"))
                 .andExpect(jsonPath("$.status").value("ACTIVE"))
                 .andExpect(jsonPath("$.emails[0]").value("john.doe@example.com"))
-                .andExpect(jsonPath("$.phones[0]").value("+1234567890"));
+                .andExpect(jsonPath("$.mobile").value("+1234567890"));
 
         verify(contactService, times(1)).read(testContactId);
     }
@@ -463,7 +466,8 @@ class ContactControllerTest {
         contact.setLastName(lastName);
         contact.setStatus(status);
         contact.setEmails(Arrays.asList("john.doe@example.com", "j.doe@example.com"));
-        contact.setPhones(Collections.singletonList("+1234567890"));
+        contact.setMobile("+1234567890");
+        contact.setHomePhone(null);
         contact.setAddresses(Collections.singletonList("123 Main St, City, State 12345"));
         contact.setTags(Arrays.asList("friend", "work"));
         contact.setCreatedAt(LocalDateTime.now());

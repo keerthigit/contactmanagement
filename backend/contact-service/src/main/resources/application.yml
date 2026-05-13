@@ -1,6 +1,8 @@
 server:
   port: 8081
 
+# REST API: HTTP Basic user/password (see SecurityConfig.DEV_USERNAME / DEV_PASSWORD).
+
 spring:
   application:
     name: contact-service

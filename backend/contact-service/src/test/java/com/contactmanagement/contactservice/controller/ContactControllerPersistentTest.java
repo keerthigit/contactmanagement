@@ -1,5 +1,6 @@
 package com.contactmanagement.contactservice.controller;
 
+import com.contactmanagement.contactservice.config.SecurityConfig;
 import com.contactmanagement.contactservice.model.Contact;
 import com.contactmanagement.contactservice.model.ContactStatus;
 import com.contactmanagement.contactservice.repository.ContactRepository;
@@ -14,10 +15,10 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -90,11 +91,13 @@ class ContactControllerPersistentTest {
             testContact.setLastName(data[1]);
             testContact.setStatus(ContactStatus.valueOf(data[2]));
             testContact.setEmails(Arrays.asList(data[3]));
-            testContact.setPhones(Collections.singletonList(data[4]));
-            testContact.setAddresses(Collections.singletonList(data[5]));
+            testContact.setMobile(data[4]);
+            testContact.setHomePhone(null);
+            testContact.setAddresses(Arrays.asList(data[5]));
             testContact.setTags(Arrays.asList(data[6].split(",")));
 
             String response = mockMvc.perform(post("/contacts")
+                            .with(httpBasic(SecurityConfig.DEV_USERNAME, SecurityConfig.DEV_PASSWORD))
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(testContact)))
                     .andExpect(status().isCreated())
@@ -124,7 +127,8 @@ class ContactControllerPersistentTest {
     @Order(2)
     @DisplayName("Should retrieve all contacts including persisted ones")
     void testGetAllContacts_Persistent() throws Exception {
-        mockMvc.perform(get("/contacts"))
+        mockMvc.perform(get("/contacts")
+                        .with(httpBasic(SecurityConfig.DEV_USERNAME, SecurityConfig.DEV_PASSWORD)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(10))))
                 .andExpect(jsonPath("$[*].firstName").exists());
