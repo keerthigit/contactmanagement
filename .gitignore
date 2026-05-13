@@ -29,6 +29,9 @@ dist/
 .env.test.local
 .env.production.local
 
+# Git worktrees (superpowers / local isolation)
+.worktrees/
+
 # IDE
 .idea/
 *.iml
