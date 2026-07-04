@@ -79,7 +79,7 @@ class ContactControllerTest {
                 .andExpect(jsonPath("$.firstName").value("John"))
                 .andExpect(jsonPath("$.lastName").value("Doe"))
                 .andExpect(jsonPath("$.status").value("ACTIVE"))
-                .andExpect(jsonPath("$.emails", hasSize(2)))
+                .andExpect(jsonPath("$.email").value("john.doe@example.com"))
                 .andExpect(jsonPath("$.mobile").value("+1234567890"))
                 .andExpect(jsonPath("$.addresses", hasSize(1)))
                 .andExpect(jsonPath("$.tags", hasSize(2)));
@@ -109,6 +109,7 @@ class ContactControllerTest {
         minimalContact.setLastName("Smith");
         minimalContact.setStatus(ContactStatus.ACTIVE);
         minimalContact.setMobile("+10000000000");
+        minimalContact.setEmail("jane.smith@example.com");
 
         Contact savedContact = new Contact();
         savedContact.setId(testContactId);
@@ -116,7 +117,7 @@ class ContactControllerTest {
         savedContact.setLastName("Smith");
         savedContact.setStatus(ContactStatus.ACTIVE);
         savedContact.setMobile("+10000000000");
-        savedContact.setEmails(new ArrayList<>());
+        savedContact.setEmail("jane.smith@example.com");
         savedContact.setAddresses(new ArrayList<>());
         savedContact.setTags(new ArrayList<>());
 
@@ -181,7 +182,7 @@ class ContactControllerTest {
                 .andExpect(jsonPath("$.firstName").value("John"))
                 .andExpect(jsonPath("$.lastName").value("Doe"))
                 .andExpect(jsonPath("$.status").value("ACTIVE"))
-                .andExpect(jsonPath("$.emails[0]").value("john.doe@example.com"))
+                .andExpect(jsonPath("$.email").value("john.doe@example.com"))
                 .andExpect(jsonPath("$.mobile").value("+1234567890"));
 
         verify(contactService, times(1)).read(testContactId);
@@ -338,7 +339,7 @@ class ContactControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(1)))
                 .andExpect(jsonPath("$.totalElements").value(1))
-                .andExpect(jsonPath("$.content[0].emails[0]").value("john.doe@example.com"));
+                .andExpect(jsonPath("$.content[0].email").value("john.doe@example.com"));
 
         verify(contactService, times(1)).searchContacts(any(ContactSearchRequest.class));
     }
@@ -465,7 +466,7 @@ class ContactControllerTest {
         contact.setFirstName(firstName);
         contact.setLastName(lastName);
         contact.setStatus(status);
-        contact.setEmails(Arrays.asList("john.doe@example.com", "j.doe@example.com"));
+        contact.setEmail("john.doe@example.com");
         contact.setMobile("+1234567890");
         contact.setHomePhone(null);
         contact.setAddresses(Collections.singletonList("123 Main St, City, State 12345"));

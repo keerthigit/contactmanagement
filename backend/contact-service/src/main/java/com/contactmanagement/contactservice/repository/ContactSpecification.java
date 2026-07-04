@@ -27,15 +27,13 @@ public class ContactSpecification {
                 predicates.add(criteriaBuilder.or(firstNamePredicate, lastNamePredicate));
             }
 
-            // Email filter: search in emails collection (case-insensitive, partial match)
+            // Email filter: case-insensitive partial match on single email field
             if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
-                Join<Contact, String> emailJoin = root.join("emails", JoinType.LEFT);
                 String emailPattern = "%" + request.getEmail().trim().toLowerCase() + "%";
                 Predicate emailPredicate = criteriaBuilder.like(
-                    criteriaBuilder.lower(emailJoin), emailPattern
+                    criteriaBuilder.lower(root.get("email")), emailPattern
                 );
                 predicates.add(emailPredicate);
-                needsDistinct = true;
             }
 
             // Phone filter: match mobile OR home phone (partial match)

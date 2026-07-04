@@ -90,7 +90,7 @@ class ContactControllerPersistentTest {
             testContact.setFirstName(data[0]);
             testContact.setLastName(data[1]);
             testContact.setStatus(ContactStatus.valueOf(data[2]));
-            testContact.setEmails(Arrays.asList(data[3]));
+            testContact.setEmail(data[3]);
             testContact.setMobile(data[4]);
             testContact.setHomePhone(null);
             testContact.setAddresses(Arrays.asList(data[5]));

@@ -49,7 +49,7 @@ public class ContactService {
         contact.setLastName(contactDetails.getLastName());
         contact.setMobile(contactDetails.getMobile());
         contact.setHomePhone(contactDetails.getHomePhone());
-        contact.setEmails(contactDetails.getEmails());
+        contact.setEmail(contactDetails.getEmail());
         contact.setAddresses(contactDetails.getAddresses());
         contact.setTags(contactDetails.getTags());
         contact.setStatus(contactDetails.getStatus());

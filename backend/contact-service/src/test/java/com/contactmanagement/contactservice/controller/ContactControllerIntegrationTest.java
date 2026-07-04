@@ -70,7 +70,7 @@ class ContactControllerIntegrationTest {
         testContact.setFirstName("John");
         testContact.setLastName("Doe");
         testContact.setStatus(ContactStatus.ACTIVE);
-        testContact.setEmails(Arrays.asList("john.doe@example.com", "j.doe@example.com"));
+        testContact.setEmail("john.doe@example.com");
         testContact.setMobile("+1234567890");
         testContact.setHomePhone("+1987654321");
         testContact.setAddresses(Collections.singletonList("123 Main St, City, State 12345"));
@@ -107,7 +107,7 @@ class ContactControllerIntegrationTest {
         assertEquals("John", contacts.get(0).getFirstName());
         assertEquals("Doe", contacts.get(0).getLastName());
         assertEquals(ContactStatus.ACTIVE, contacts.get(0).getStatus());
-        assertEquals(2, contacts.get(0).getEmails().size());
+        assertEquals("john.doe@example.com", contacts.get(0).getEmail());
         assertEquals(SecurityConfig.DEV_USERNAME, contacts.get(0).getCreatedBy());
         assertEquals(SecurityConfig.DEV_USERNAME, contacts.get(0).getUpdatedBy());
     }
@@ -120,7 +120,7 @@ class ContactControllerIntegrationTest {
         contact1.setLastName("Doe");
         contact1.setStatus(ContactStatus.ACTIVE);
         contact1.setMobile("+1111111111");
-        contact1.setEmails(new ArrayList<>());
+        contact1.setEmail("john.doe@example.com");
         contact1.setAddresses(new ArrayList<>());
         contact1.setTags(new ArrayList<>());
         contactRepository.save(contact1);
@@ -130,7 +130,7 @@ class ContactControllerIntegrationTest {
         contact2.setLastName("Smith");
         contact2.setStatus(ContactStatus.INACTIVE);
         contact2.setMobile("+2222222222");
-        contact2.setEmails(new ArrayList<>());
+        contact2.setEmail("jane.smith@example.com");
         contact2.setAddresses(new ArrayList<>());
         contact2.setTags(new ArrayList<>());
         contactRepository.save(contact2);
@@ -170,7 +170,7 @@ class ContactControllerIntegrationTest {
         updatedContact.setStatus(ContactStatus.INACTIVE);
         updatedContact.setMobile("+1234567890");
         updatedContact.setHomePhone(null);
-        updatedContact.setEmails(savedContact.getEmails());
+        updatedContact.setEmail(savedContact.getEmail());
         updatedContact.setAddresses(savedContact.getAddresses());
         updatedContact.setTags(savedContact.getTags());
 

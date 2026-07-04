@@ -2,6 +2,7 @@ package com.contactmanagement.contactservice.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.hibernate.annotations.CreationTimestamp;
@@ -33,10 +34,10 @@ public class Contact {
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    @ElementCollection
-    @CollectionTable(name = "contact_emails", joinColumns = @JoinColumn(name = "contact_id"))
-    @Column(name = "email")
-    private List<String> emails = new ArrayList<>();
+    @NotBlank(message = "Email is required")
+    @Email(message = "Email must be valid")
+    @Column(name = "email", nullable = false)
+    private String email;
 
     @NotBlank(message = "Mobile is required")
     @Column(name = "mobile", nullable = false, length = 50)
@@ -81,11 +82,12 @@ public class Contact {
     public Contact() {
     }
 
-    public Contact(String firstName, String lastName, ContactStatus status, String mobile) {
+    public Contact(String firstName, String lastName, ContactStatus status, String mobile, String email) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.status = status;
         this.mobile = mobile;
+        this.email = email;
     }
 
     public UUID getId() {
@@ -112,12 +114,12 @@ public class Contact {
         this.lastName = lastName;
     }
 
-    public List<String> getEmails() {
-        return emails;
+    public String getEmail() {
+        return email;
     }
 
-    public void setEmails(List<String> emails) {
-        this.emails = emails;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getMobile() {
