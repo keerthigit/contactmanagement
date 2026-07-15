@@ -2,12 +2,16 @@ import React, { useState } from 'react';
 import './styles/App.css';
 import CreateContactTab from './components/CreateContactTab';
 import UpdateContactTab from './components/UpdateContactTab';
+import SearchContactTab from './components/SearchContactTab';
 import DeleteContactTab from './components/DeleteContactTab';
+import UploadContactTab from './components/UploadContactTab';
 
 const TABS = [
   { id: 'create', label: 'Create' },
   { id: 'update', label: 'Update' },
+  { id: 'search', label: 'Search' },
   { id: 'delete', label: 'Delete' },
+  { id: 'upload', label: 'Upload' },
 ];
 
 function App() {
@@ -17,8 +21,12 @@ function App() {
     switch (activeTab) {
       case 'update':
         return <UpdateContactTab />;
+      case 'search':
+        return <SearchContactTab />;
       case 'delete':
         return <DeleteContactTab />;
+      case 'upload':
+        return <UploadContactTab />;
       default:
         return <CreateContactTab />;
     }
