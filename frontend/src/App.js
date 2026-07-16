@@ -3,10 +3,12 @@ import './styles/App.css';
 import CreateContactTab from './components/CreateContactTab';
 import UpdateContactTab from './components/UpdateContactTab';
 import SearchContactTab from './components/SearchContactTab';
+import ViewContactTab from './components/ViewContactTab';
 import DeleteContactTab from './components/DeleteContactTab';
 import UploadContactTab from './components/UploadContactTab';
 
 const TABS = [
+  { id: 'view', label: 'View' },
   { id: 'create', label: 'Create' },
   { id: 'update', label: 'Update' },
   { id: 'search', label: 'Search' },
@@ -15,10 +17,12 @@ const TABS = [
 ];
 
 function App() {
-  const [activeTab, setActiveTab] = useState('create');
+  const [activeTab, setActiveTab] = useState('view');
 
   const renderTab = () => {
     switch (activeTab) {
+      case 'create':
+        return <CreateContactTab />;
       case 'update':
         return <UpdateContactTab />;
       case 'search':
@@ -28,7 +32,7 @@ function App() {
       case 'upload':
         return <UploadContactTab />;
       default:
-        return <CreateContactTab />;
+        return <ViewContactTab />;
     }
   };
 
